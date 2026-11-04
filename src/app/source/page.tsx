@@ -1968,22 +1968,11 @@ function TakeACloserLook() {
                       </a>
                       <a
                         href="/contact"
-                        className="group relative inline-flex items-center gap-3 rounded-md border border-white/20 py-2 pl-2 pr-2 font-display text-sm font-medium text-white transition hover:border-white hover:bg-white hover:text-black"
+                        className="group inline-flex flex-row-reverse items-center gap-3 rounded border border-white/20 bg-transparent py-1.5 pl-1.5 pr-5 font-display text-sm font-medium text-white transition-all duration-300 ease-out hover:flex-row hover:border-white hover:bg-white hover:pl-5 hover:pr-1.5 hover:text-black"
                       >
-                        {/* Left arrow slot — visible by default, fades + slides up on hover */}
-                        <span
-                          aria-hidden
-                          className="relative grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-full bg-white text-black opacity-100 transition-all duration-300 group-hover:bg-black group-hover:text-white group-hover:opacity-0"
-                        >
-                          <ArrowRight className="h-3 w-3 transition-transform duration-300 ease-out group-hover:-translate-y-6" />
-                        </span>
-                        <span>Request a Quote</span>
-                        {/* Right arrow slot — hidden by default, fades + slides up into view on hover */}
-                        <span
-                          aria-hidden
-                          className="relative grid h-6 w-6 shrink-0 place-items-center overflow-hidden rounded-full bg-white text-black opacity-0 transition-all duration-300 group-hover:bg-black group-hover:text-white group-hover:opacity-100"
-                        >
-                          <ArrowRight className="h-3 w-3 translate-y-6 transition-transform duration-300 ease-out group-hover:translate-y-0" />
+                        Request a Quote
+                        <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded bg-white text-black transition-colors duration-300 ease-out group-hover:bg-black group-hover:text-white">
+                          <ArrowRight className="h-3.5 w-3.5" />
                         </span>
                       </a>
                     </div>
@@ -3332,31 +3321,52 @@ function CleanTechChapter() {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: el,
-          start: "top 85%",
-          end: "bottom 25%",
-          scrub: 0.8,
+          start: "top 95%",
+          end: "top 30%",
+          scrub: 1,
         },
       });
 
       if (curve) {
         const len = curve.getTotalLength();
         gsap.set(curve, { strokeDasharray: len, strokeDashoffset: len });
+        // Line draws across the full timeline — by `end: top 30%` the whole
+        // L-shape is visible inside the section.
         tl.to(curve, { strokeDashoffset: 0, ease: "none", duration: 1 }, 0);
       }
 
-      // Stagger the reveals across the line's draw — each block appears as
-      // the line reaches roughly its vertical position.
       tl.to(
         reveals,
         {
           autoAlpha: 1,
           y: 0,
-          stagger: 0.18,
+          stagger: 0.15,
           duration: 0.25,
           ease: "power2.out",
         },
-        0.15
+        0.1
       );
+
+      // Word-by-word scrub reveal on the heading — matches other sections.
+      const words = gsap.utils.toArray<HTMLElement>("[data-ct-word]");
+      if (words.length) {
+        gsap.set(words, { color: "rgba(255,255,255,0.2)" });
+        gsap.to(words, {
+          keyframes: [
+            { color: "#FFFFFF", duration: 0.35 },
+            { color: "#67E8F9", duration: 0.3 },
+            { color: "#FFFFFF", duration: 0.35 },
+          ],
+          ease: "none",
+          stagger: { amount: 1.5 },
+          scrollTrigger: {
+            trigger: "[data-ct-heading]",
+            start: "top 90%",
+            end: "+=80%",
+            scrub: 0.8,
+          },
+        });
+      }
     }, el);
     return () => ctx.revert();
   }, []);
@@ -3374,7 +3384,7 @@ function CleanTechChapter() {
         >
           <path
             data-ct-curve
-            d="M 0 120 L 1050 120 C 1300 120, 1500 180, 1560 330 L 1560 1000"
+            d="M 0 120 L 1230 120 C 1429 120, 1590 281, 1590 480 L 1590 1000"
             fill="none"
             stroke="#67e8f9"
             strokeWidth="2"
@@ -3394,8 +3404,16 @@ function CleanTechChapter() {
           <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/50">
             CleanTech
           </p>
-          <h2 className="mt-3 font-display text-[42px] font-semibold leading-[1.08] text-white md:mt-4">
-            Keep panels clean for consistent performance.
+          <h2
+            data-ct-heading
+            className="mt-3 font-display text-[42px] font-semibold leading-[1.08] text-white md:mt-4"
+          >
+            {"Keep panels clean for consistent performance.".split(" ").map((w, i, arr) => (
+              <Fragment key={`ct-w-${i}`}>
+                <span data-ct-word className="inline-block">{w}</span>
+                {i < arr.length - 1 ? " " : ""}
+              </Fragment>
+            ))}
           </h2>
           <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-white/60 md:mt-5">
             Our solar-panel cleaning device is a separate chapter in the wider CleanTech ecosystem, built to keep your rooftop generating at its best.
@@ -3446,11 +3464,11 @@ function CleanTechChapter() {
             <div data-ct-reveal className="mt-8">
               <Link
                 href="/contact"
-                className="group inline-flex items-center gap-3 rounded-full border border-white/20 py-2.5 pl-5 pr-2.5 font-display text-sm font-medium text-white transition hover:border-white hover:bg-white hover:text-black"
+                className="group inline-flex flex-row-reverse items-center gap-3 rounded border border-white/20 bg-transparent py-1.5 pl-1.5 pr-5 font-display text-sm font-medium text-white transition-all duration-300 ease-out hover:flex-row hover:border-white hover:bg-white hover:pl-5 hover:pr-1.5 hover:text-black md:text-base"
               >
                 Explore CleanTech device
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-white text-black transition group-hover:bg-black group-hover:text-white">
-                  <ArrowRight className="h-3.5 w-3.5" />
+                <span className="grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded bg-white text-black transition-colors duration-300 ease-out group-hover:bg-black group-hover:text-white md:h-8 md:w-8">
+                  <ArrowRight className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 </span>
               </Link>
             </div>
