@@ -432,6 +432,11 @@ function Hero() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [quoteOpen, setQuoteOpen] = useState(false);
 
+  // Parallax frame-sequence hero is temporarily disabled — using a looping
+  // video (/source/hero.mp4) as the backdrop instead. Re-enable this effect
+  // (and swap the <video> back to <canvas>) to restore the scroll-scrubbed
+  // clouds-to-home cinematic.
+  /*
   useIsomorphicLayoutEffect(() => {
     const pin = pinRef.current;
     const canvas = canvasRef.current;
@@ -542,6 +547,7 @@ function Hero() {
       gsapCtx.revert();
     };
   }, []);
+  */
 
   return (
     <section
@@ -549,7 +555,23 @@ function Hero() {
       className="relative isolate w-full overflow-hidden bg-[#0A0A0A]"
     >
       <div className="relative h-screen w-full">
-        <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden />
+        {/* Looping hero video — temporarily replacing the scroll-scrubbed frame
+            sequence while the parallax effect above is commented out. */}
+        <video
+          src="/source/hero.mp4"
+          className="absolute inset-0 h-full w-full object-cover"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          aria-hidden
+        />
+        {/* Soft bottom-up gradient so the headline + CTAs stay legible over the video */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+        />
 
         {/* Cloud wash — layered translucent blobs that drift sideways on scroll.
             Procedural stand-in for a real cloud render. */}
@@ -595,11 +617,11 @@ function Hero() {
             />
             <HeroCTA href="/contact" label={HERO_COPY.secondary} arrow={false} />
           </div>
-          {/* Teal underline — forms during the pin, visually promises what's next */}
+          {/* Teal underline — static here while the pin-driven scaleX reveal is disabled */}
           <div
             data-hero-underline
             aria-hidden
-            className="mt-10 h-px w-[180px] origin-left scale-x-0 bg-gradient-to-r from-cyan-300 via-emerald-300 to-transparent"
+            className="mt-10 h-px w-[180px] origin-left bg-gradient-to-r from-cyan-300 via-emerald-300 to-transparent"
           />
         </AnimateIn>
       </div>
@@ -728,14 +750,16 @@ function DiscoverTheHome() {
             From rooftop solar to every room — see how SOURCE connects the pieces.
           </p>
         </div>
+      </Shell>
 
-        {/* Home image stage — corner brackets + 4 numbered hotspots overlaid.
-            Click a marker to toggle the details panel below. */}
-        <div
-          data-dth-stage
-          className="relative mx-auto mt-12 w-full max-w-[1200px] overflow-hidden rounded-2xl border border-white/10 md:mt-16"
-        >
-          <div className="relative aspect-[16/9] w-full">
+      {/* Home image stage — breaks out of Shell to span the full viewport width.
+          Corner brackets + 4 numbered hotspots overlaid. Clicking a marker
+          toggles the anchored details card next to it. */}
+      <div
+        data-dth-stage
+        className="relative mt-12 w-full overflow-hidden border-y border-white/10 md:mt-16"
+      >
+          <div className="relative h-screen w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/source/discoverhome.png"
@@ -808,7 +832,6 @@ function DiscoverTheHome() {
             })()}
           </div>
         </div>
-      </Shell>
     </section>
   );
 }
