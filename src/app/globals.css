@@ -46,6 +46,19 @@ button {
   opacity: 0;
 }
 
+/* Registered custom property — lets us animate a conic-gradient's `from`
+   angle smoothly. Used by the Energy-Meets-Intelligence panel border beams. */
+@property --emi-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+@keyframes emiBorderSpin {
+  to {
+    --emi-angle: 360deg;
+  }
+}
+
 /* Marketing-grade utilities */
 @layer components {
   .shell {
