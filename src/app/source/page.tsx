@@ -51,17 +51,8 @@ const HOME_HOTSPOTS = [
     tagline: "Clean energy from the sun",
     body:
       "Rooftop panels capture sunlight through the day and feed clean energy into the SOURCE system. Any excess charges the battery or exports back to the grid.",
-    x: 56,
-    y: 22,
-  },
-  {
-    id: "living",
-    title: "Living Room",
-    tagline: "Everyday comforts",
-    body:
-      "Entertainment, lighting, and connected devices draw continuously from the best energy source available — moment to moment, without you thinking about it.",
-    x: 78,
-    y: 62,
+    x: 50,
+    y: 20,
   },
   {
     id: "kitchen",
@@ -69,8 +60,17 @@ const HOME_HOTSPOTS = [
     tagline: "The moments that matter",
     body:
       "High-draw appliances get priority power when they need it. SOURCE balances the load so your kettle, oven, and fridge run smoothly — even when the grid is down.",
-    x: 26,
-    y: 56,
+    x: 78,
+    y: 42,
+  },
+  {
+    id: "living",
+    title: "Living Room",
+    tagline: "Everyday comforts",
+    body:
+      "Entertainment, lighting, and connected devices draw continuously from the best energy source available — moment to moment, without you thinking about it.",
+    x: 25,
+    y: 78,
   },
   {
     id: "source",
@@ -78,7 +78,7 @@ const HOME_HOTSPOTS = [
     tagline: "The heart of your home's energy",
     body:
       "The intelligent hub that quietly orchestrates everything — solar generation, battery storage, grid interaction, and every connected load — in a single compact wall-mounted unit.",
-    x: 50,
+    x: 57,
     y: 72,
   },
 ];
@@ -122,7 +122,7 @@ const ENERGY_COMPONENTS: EnergyComponent[] = [
     body:
       "Energy is stored in a long-life LiFePO₄ battery module so it is available after sundown or during outages.",
     dot: "#6ee7b7",
-    image: "/source/source-battery.png",
+    image: "/source/source-battery.mp4",
   },
   {
     id: "building",
@@ -131,7 +131,7 @@ const ENERGY_COMPONENTS: EnergyComponent[] = [
     body:
       "Every connected load across the home draws from the best source available, moment to moment.",
     dot: "#f8fafc",
-    image: "/source/solar-building.png",
+    image: "/source/source-building.mp4",
   },
 ];
 
@@ -377,7 +377,7 @@ export default function SourcePage() {
       <CleanTechChapter />
       <Applications />
       <FAQ />
-      <GetTheApp />
+      {/* <GetTheApp /> */}
       <FinalCTA />
       <Footer />
     </>
@@ -617,12 +617,6 @@ function Hero() {
             />
             <HeroCTA href="/contact" label={HERO_COPY.secondary} arrow={false} />
           </div>
-          {/* Teal underline — static here while the pin-driven scaleX reveal is disabled */}
-          <div
-            data-hero-underline
-            aria-hidden
-            className="mt-10 h-px w-[180px] origin-left bg-gradient-to-r from-cyan-300 via-emerald-300 to-transparent"
-          />
         </AnimateIn>
       </div>
 
@@ -668,7 +662,7 @@ function ScrollCue({ className = "" }: { className?: string }) {
 
 function DiscoverTheHome() {
   const sectionRef = useRef<HTMLElement | null>(null);
-  const [activeHotspot, setActiveHotspot] = useState<number | null>(null);
+  const [hoveredHotspot, setHoveredHotspot] = useState<number | null>(null);
 
   useIsomorphicLayoutEffect(() => {
     const el = sectionRef.current;
@@ -762,7 +756,7 @@ function DiscoverTheHome() {
           <div className="relative h-screen w-full">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/source/discoverhome.png"
+              src="/source/discover2.png"
               alt="SOURCE home overview with energy touchpoints"
               className="absolute inset-0 h-full w-full object-cover"
             />
@@ -782,23 +776,24 @@ function DiscoverTheHome() {
                 key={h.id}
                 index={i}
                 hotspot={h}
-                active={activeHotspot === i}
-                onClick={() =>
-                  setActiveHotspot((prev) => (prev === i ? null : i))
-                }
+                active={hoveredHotspot === i}
+                onHoverStart={() => setHoveredHotspot(i)}
+                onHoverEnd={() => setHoveredHotspot(null)}
               />
             ))}
 
-            {/* Active hotspot card — anchored next to its marker inside the
+            {/* Hovered hotspot card — anchored next to its marker inside the
                 stage. Opens to the right when the marker is in the left half,
                 and to the left otherwise, so the card never clips off-image.
-                Vertically centred on the marker. */}
-            {activeHotspot !== null && (() => {
-              const h = HOME_HOTSPOTS[activeHotspot];
+                Vertically centred on the marker. pointer-events-none so moving
+                the cursor off the pin always dismisses it (no sticky hover trap). */}
+            {hoveredHotspot !== null && (() => {
+              const h = HOME_HOTSPOTS[hoveredHotspot];
               const openLeft = h.x >= 50;
               return (
                 <div
-                  className="absolute z-20 w-[240px] rounded-xl border border-white/10 bg-black/80 p-4 text-left shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-md md:w-[300px] md:p-5"
+                  aria-hidden
+                  className="pointer-events-none absolute z-20 w-[240px] rounded-xl border border-white/10 bg-black/80 p-4 text-left shadow-[0_20px_60px_rgba(0,0,0,0.55)] backdrop-blur-md md:w-[300px] md:p-5"
                   style={{
                     left: `${h.x}%`,
                     top: `${h.y}%`,
@@ -807,18 +802,7 @@ function DiscoverTheHome() {
                       : "translate(28px, -50%)",
                   }}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setActiveHotspot(null)}
-                    aria-label="Close"
-                    className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full border border-white/15 text-white/70 transition hover:border-white hover:text-white"
-                  >
-                    <svg viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
-                      <path d="M6 6l12 12" />
-                      <path d="M18 6L6 18" />
-                    </svg>
-                  </button>
-                  <p className="pr-8 text-[10px] font-medium uppercase tracking-[0.22em] text-cyan-300/80">
+                  <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-cyan-300/80">
                     {h.tagline}
                   </p>
                   <h3 className="mt-1.5 font-display text-lg font-semibold leading-tight text-white md:text-xl">
@@ -844,18 +828,23 @@ function HotspotMarker({
   index,
   hotspot,
   active,
-  onClick,
+  onHoverStart,
+  onHoverEnd,
 }: {
   index: number;
   hotspot: (typeof HOME_HOTSPOTS)[number];
   active: boolean;
-  onClick: () => void;
+  onHoverStart: () => void;
+  onHoverEnd: () => void;
 }) {
   const num = String(index + 1).padStart(2, "0");
   return (
     <button
       type="button"
-      onClick={onClick}
+      onMouseEnter={onHoverStart}
+      onMouseLeave={onHoverEnd}
+      onFocus={onHoverStart}
+      onBlur={onHoverEnd}
       aria-expanded={active}
       aria-label={`${hotspot.title} — ${hotspot.body}`}
       data-dth-hotspot
@@ -887,13 +876,6 @@ function HotspotMarker({
       >
         {num}
       </span>
-
-      {/* Hover title chip (desktop only) */}
-      {!active && (
-        <span className="pointer-events-none absolute left-1/2 top-full mt-2 hidden -translate-x-1/2 whitespace-nowrap rounded-md border border-white/15 bg-black/85 px-2.5 py-1 font-display text-[11px] font-medium text-white opacity-0 backdrop-blur-md transition-opacity duration-200 md:block md:group-hover:opacity-100">
-          {hotspot.title}
-        </span>
-      )}
     </button>
   );
 }
@@ -959,42 +941,42 @@ type WteState = { pos: number; posY: number; scale: number; textOp: number };
 // viewport height). SLIDE_DIST = 68vw between adjacent cards → ~5vw gap +
 // ~13vw peek on each side.
 const WTE_KEYFRAMES: Record<number, Array<{ p: number } & WteState>> = {
-  // Carousel centre at pos -12 (tight ~4vw left margin). SLIDE_DIST = 68 for
-  // very tight ~0.5vw gap between cards.
+  // Carousel centre at pos -12 (tight ~4vw left margin). SLIDE_DIST = 69 for
+  // ~1.5vw gap between adjacent cards.
   0: [
     { p: 0, pos: 0, posY: 15, scale: 0.7, textOp: 0 },      // 3-card centre
     { p: 1, pos: -12, posY: 0, scale: 1.35, textOp: 1 },    // CAROUSEL start: centred + TEXT
-    { p: 1.3, pos: -32, posY: 0, scale: 1.35, textOp: 0 },
-    { p: 2, pos: -80, posY: 0, scale: 1.35, textOp: 0 },    // left peek
-    { p: 3, pos: -148, posY: 0, scale: 1.35, textOp: 0 },
-    { p: 4, pos: -192, posY: 0, scale: 1.35, textOp: 0 },
+    { p: 1.3, pos: -33, posY: 0, scale: 1.35, textOp: 0 },
+    { p: 2, pos: -81, posY: 0, scale: 1.35, textOp: 0 },    // left peek
+    { p: 3, pos: -150, posY: 0, scale: 1.35, textOp: 0 },
+    { p: 4, pos: -195, posY: 0, scale: 1.35, textOp: 0 },
   ],
   1: [
     { p: 0, pos: 32, posY: 15, scale: 0.45, textOp: 0 },
-    { p: 1, pos: 56, posY: 0, scale: 1.35, textOp: 0 },     // right peek
+    { p: 1, pos: 57, posY: 0, scale: 1.35, textOp: 0 },     // right peek
     { p: 1.8, pos: 2, posY: 0, scale: 1.35, textOp: 0 },
     { p: 2, pos: -12, posY: 0, scale: 1.35, textOp: 1 },    // centred + TEXT
-    { p: 2.3, pos: -32, posY: 0, scale: 1.35, textOp: 0 },
-    { p: 3, pos: -80, posY: 0, scale: 1.35, textOp: 0 },    // left peek
-    { p: 4, pos: -124, posY: 0, scale: 1.35, textOp: 0 },
+    { p: 2.3, pos: -33, posY: 0, scale: 1.35, textOp: 0 },
+    { p: 3, pos: -81, posY: 0, scale: 1.35, textOp: 0 },    // left peek
+    { p: 4, pos: -126, posY: 0, scale: 1.35, textOp: 0 },
   ],
   2: [
-    { p: 0, pos: 124, posY: 0, scale: 0, textOp: 0 },
-    { p: 1, pos: 124, posY: 0, scale: 1.35, textOp: 0 },
-    { p: 2, pos: 56, posY: 0, scale: 1.35, textOp: 0 },     // right peek
+    { p: 0, pos: 126, posY: 0, scale: 0, textOp: 0 },
+    { p: 1, pos: 126, posY: 0, scale: 1.35, textOp: 0 },
+    { p: 2, pos: 57, posY: 0, scale: 1.35, textOp: 0 },     // right peek
     { p: 2.8, pos: 2, posY: 0, scale: 1.35, textOp: 0 },
     { p: 3, pos: -12, posY: 0, scale: 1.35, textOp: 1 },    // centred + TEXT
-    { p: 3.3, pos: -25, posY: 0, scale: 1.35, textOp: 0 }, // text-fade only; linear slide path to p=4
-    { p: 4, pos: -56, posY: 0, scale: 1.35, textOp: 0 },    // left peek, matches Building's slide rate
+    { p: 3.3, pos: -26, posY: 0, scale: 1.35, textOp: 0 }, // text-fade only; linear slide path to p=4
+    { p: 4, pos: -57, posY: 0, scale: 1.35, textOp: 0 },    // left peek, matches Building's slide rate
   ],
   3: [
     { p: 0, pos: -32, posY: 15, scale: 0.45, textOp: 0 },
     { p: 0.3, pos: -32, posY: 0, scale: 0, textOp: 0 },
-    { p: 0.8, pos: 192, posY: 0, scale: 0, textOp: 0 },
-    { p: 1, pos: 192, posY: 0, scale: 1.35, textOp: 0 },
-    { p: 2, pos: 124, posY: 0, scale: 1.35, textOp: 0 },
-    { p: 3, pos: 56, posY: 0, scale: 1.35, textOp: 0 },     // right peek
-    { p: 3.8, pos: 21, posY: 0, scale: 1.35, textOp: 0 },   // on linear path to p=4 (56 → 12)
+    { p: 0.8, pos: 195, posY: 0, scale: 0, textOp: 0 },
+    { p: 1, pos: 195, posY: 0, scale: 1.35, textOp: 0 },
+    { p: 2, pos: 126, posY: 0, scale: 1.35, textOp: 0 },
+    { p: 3, pos: 57, posY: 0, scale: 1.35, textOp: 0 },     // right peek
+    { p: 3.8, pos: 21, posY: 0, scale: 1.35, textOp: 0 },   // on linear path to p=4 (57 → 12)
     { p: 4, pos: 12, posY: 0, scale: 1.35, textOp: 1 },     // centred-right (final) + TEXT
   ],
 };
@@ -1720,14 +1702,17 @@ function TakeACloserLook() {
         });
       }
 
-      // Pin the block for 3 viewport-heights; three product images crossfade through the pin.
-      gsap.set('[data-tech-image="1"], [data-tech-image="2"]', { autoAlpha: 0 });
+      // Pin the block for 6 viewport-heights; six product images crossfade through the pin.
+      gsap.set(
+        '[data-tech-image="1"], [data-tech-image="2"], [data-tech-image="3"], [data-tech-image="4"], [data-tech-image="5"]',
+        { autoAlpha: 0 }
+      );
 
       const techTl = gsap.timeline({
         scrollTrigger: {
           trigger: "[data-tech-pin]",
           start: "top top",
-          end: "+=300%",
+          end: "+=600%",
           pin: true,
           pinSpacing: true,
           scrub: 0.6,
@@ -1735,11 +1720,22 @@ function TakeACloserLook() {
           invalidateOnRefresh: true,
         },
       });
+      // Overlapping, eased crossfades — outgoing and incoming images animate
+      // at the same time with a soft ease so the swap feels like a smooth
+      // dissolve rather than a hard cut.
+      const FADE = 0.45;
+      const EASE = "power2.inOut";
       techTl
-        .to('[data-tech-image="0"]', { autoAlpha: 0, duration: 0.15, ease: "none" }, 0.9)
-        .to('[data-tech-image="1"]', { autoAlpha: 1, duration: 0.15, ease: "none" }, 1.05)
-        .to('[data-tech-image="1"]', { autoAlpha: 0, duration: 0.15, ease: "none" }, 1.9)
-        .to('[data-tech-image="2"]', { autoAlpha: 1, duration: 0.15, ease: "none" }, 2.05)
+        .to('[data-tech-image="0"]', { autoAlpha: 0, duration: FADE, ease: EASE }, 0.8)
+        .to('[data-tech-image="1"]', { autoAlpha: 1, duration: FADE, ease: EASE }, 0.8)
+        .to('[data-tech-image="1"]', { autoAlpha: 0, duration: FADE, ease: EASE }, 1.8)
+        .to('[data-tech-image="2"]', { autoAlpha: 1, duration: FADE, ease: EASE }, 1.8)
+        .to('[data-tech-image="2"]', { autoAlpha: 0, duration: FADE, ease: EASE }, 2.8)
+        .to('[data-tech-image="3"]', { autoAlpha: 1, duration: FADE, ease: EASE }, 2.8)
+        .to('[data-tech-image="3"]', { autoAlpha: 0, duration: FADE, ease: EASE }, 3.8)
+        .to('[data-tech-image="4"]', { autoAlpha: 1, duration: FADE, ease: EASE }, 3.8)
+        .to('[data-tech-image="4"]', { autoAlpha: 0, duration: FADE, ease: EASE }, 4.8)
+        .to('[data-tech-image="5"]', { autoAlpha: 1, duration: FADE, ease: EASE }, 4.8)
         .to({}, { duration: 0.7 });
 
       // 3D cyan glow backdrop — two layered radial halos breathing at different cadences.
@@ -1767,33 +1763,33 @@ function TakeACloserLook() {
     <section ref={sectionRef} className="relative w-full overflow-hidden">
       <div
         data-tech-pin
-        className="relative flex min-h-[720px] w-full flex-col bg-[#1A1A1A] text-white md:h-screen md:min-h-[760px]"
+        className="relative flex min-h-[720px] w-full flex-col bg-[#0A0A0A] text-white md:h-screen md:min-h-[760px]"
       >
-        <Shell className="relative flex h-full flex-col justify-center pb-10 pt-24 md:pb-14 md:pt-28">
-          {/* Heading indented to the pill column's left edge; description top-
-              aligns with the heading's first line on the right. */}
-          <div className="grid gap-4 md:grid-cols-[1.5fr_1fr] md:items-start md:gap-14 lg:gap-20">
-            <h2
-              data-tech-heading
-              className="text-left font-display text-[42px] font-semibold leading-[1.05] tracking-tight text-white md:pl-16"
-            >
-              {"Take a closer look.".split(" ").map((w, i, arr) => (
-                <Fragment key={i}>
-                  <span data-tech-word className="inline-block">
-                    {w}
-                  </span>
-                  {i < arr.length - 1 ? " " : ""}
-                </Fragment>
-              ))}
-            </h2>
-            <p className="max-w-md text-left text-[16px] leading-relaxed text-white/60 md:ml-auto">
-              Every SOURCE unit is engineered to IEC standards and shipped with a full datasheet — inverter, battery, and system specs, one document.
-            </p>
-          </div>
+        <Shell className="relative flex h-full flex-col justify-center pb-10 pt-24 md:pb-14 md:pt-20">
+          <div className="grid flex-1 gap-6 md:grid-cols-2 md:items-start md:gap-14">
+            {/* Left — heading, description, nav arrows + expandable feature pills */}
+            <div className="order-2 md:order-1">
+              {/* Heading */}
+              <h2
+                data-tech-heading
+                className="text-left font-display text-[42px] font-semibold leading-[1.05] tracking-tight text-white md:pl-16"
+              >
+                {"Take a closer look.".split(" ").map((w, i, arr) => (
+                  <Fragment key={i}>
+                    <span data-tech-word className="inline-block">
+                      {w}
+                    </span>
+                    {i < arr.length - 1 ? " " : ""}
+                  </Fragment>
+                ))}
+              </h2>
+              {/* Description — now sits below the headline on the left */}
+              <p className="mt-5 max-w-md text-left text-[16px] leading-relaxed text-white/60 md:mt-6 md:pl-16">
+                Every SOURCE unit is engineered to IEC standards and shipped with a full datasheet — inverter, battery, and system specs, one document.
+              </p>
 
-          <div className="mt-6 grid flex-1 gap-6 md:mt-8 md:grid-cols-2 md:items-center md:gap-14">
-            {/* Left — nav arrows + expandable feature pills + CTA */}
-            <div className="relative order-2 md:order-1">
+              {/* Nav arrows + pills live in their own positioning context below. */}
+              <div className="relative mt-8 md:mt-10">
               {/* Vertical nav arrows — cycle through features */}
               <div className="pointer-events-none absolute -left-1 top-1/2 hidden -translate-y-1/2 flex-col gap-3 md:flex">
                 <button
@@ -2011,52 +2007,60 @@ function TakeACloserLook() {
                   </button>
                 )}
               </div>
-
-            </div>
-
-            {/* Right — product render. Three stacked images (s1 / s2 / s3)
-                crossfade through the pin, one per viewport-height of scroll.
-                A layered cyan 3D glow sits behind the image and breathes via
-                GSAP (see data-tech-glow-* tweens) for a sense of depth. */}
-            <div className="order-1 flex items-center justify-center md:order-2 md:h-full">
-              <div className="relative mx-auto w-full max-w-[420px] aspect-[4/5] md:aspect-auto md:h-[62vh] md:max-h-[540px]">
-                {/* 3D cyan glow backdrop — two radial layers at different
-                    sizes/intensities, each on its own breathing cadence. */}
-                <div aria-hidden className="pointer-events-none absolute inset-0 overflow-visible">
-                  <div
-                    data-tech-glow-outer
-                    className="absolute left-1/2 top-1/2 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 rounded-full"
-                    style={{
-                      background:
-                        "radial-gradient(circle, rgba(103, 232, 249, 0.45) 0%, rgba(103, 232, 249, 0.18) 42%, rgba(103, 232, 249, 0) 72%)",
-                      filter: "blur(70px)",
-                    }}
-                  />
-                  <div
-                    data-tech-glow-inner
-                    className="absolute left-1/2 top-1/2 h-[65%] w-[65%] -translate-x-1/2 -translate-y-1/2 rounded-full"
-                    style={{
-                      background:
-                        "radial-gradient(circle, rgba(103, 232, 249, 0.55) 0%, rgba(103, 232, 249, 0.0) 70%)",
-                      filter: "blur(45px)",
-                    }}
-                  />
-                </div>
-                {["/source/s1.png", "/source/s2.png", "/source/s3.png"].map((src, i) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    key={src}
-                    data-tech-image={i}
-                    src={src}
-                    alt={`SOURCE — view ${i + 1}`}
-                    className="absolute inset-0 z-10 h-full w-full object-contain"
-                    style={i === 0 ? undefined : { opacity: 0, visibility: "hidden" }}
-                  />
-                ))}
               </div>
             </div>
+
           </div>
         </Shell>
+
+        {/* Product render — mobile: inline at the top of the pin; desktop:
+            absolute, flush against the viewport's right edge (breaks out of
+            Shell's max-width + horizontal padding). Six stacked images
+            (s1 → s6) crossfade through the pin, one per viewport-height of
+            scroll. A layered cyan 3D glow sits behind and breathes via GSAP
+            (see data-tech-glow-* tweens). */}
+        <div
+          className={
+            "pointer-events-none order-first mx-auto -mt-10 flex w-full max-w-[460px] items-start justify-center px-6 " +
+            "md:pointer-events-auto md:absolute md:inset-y-0 md:right-0 md:left-auto md:order-none md:mx-0 md:mt-0 md:flex md:w-[52vw] md:max-w-none md:items-start md:justify-end md:px-0 md:pt-40 md:pb-10"
+          }
+        >
+          <div className="relative w-full aspect-[4/5] md:aspect-auto md:h-[80vh] md:max-h-[760px] md:w-full md:max-w-[720px]">
+            {/* 3D cyan glow backdrop — two radial layers at different
+                sizes/intensities, each on its own breathing cadence. */}
+            <div aria-hidden className="pointer-events-none absolute inset-0 overflow-visible">
+              <div
+                data-tech-glow-outer
+                className="absolute left-1/2 top-1/2 h-[110%] w-[110%] -translate-x-1/2 -translate-y-1/2 rounded-full md:left-[75%]"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(103, 232, 249, 0.45) 0%, rgba(103, 232, 249, 0.18) 42%, rgba(103, 232, 249, 0) 72%)",
+                  filter: "blur(70px)",
+                }}
+              />
+              <div
+                data-tech-glow-inner
+                className="absolute left-1/2 top-1/2 h-[65%] w-[65%] -translate-x-1/2 -translate-y-1/2 rounded-full md:left-[75%]"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(103, 232, 249, 0.55) 0%, rgba(103, 232, 249, 0.0) 70%)",
+                  filter: "blur(45px)",
+                }}
+              />
+            </div>
+            {["/source/s1.png", "/source/s2.png", "/source/s3.png", "/source/s4.png", "/source/s5.png", "/source/s6.png"].map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={src}
+                data-tech-image={i}
+                src={src}
+                alt={`SOURCE — view ${i + 1}`}
+                className="absolute inset-0 z-10 h-full w-full object-contain object-center md:object-right"
+                style={i === 0 ? undefined : { opacity: 0, visibility: "hidden" }}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -3039,64 +3043,137 @@ function DashboardGridFlow() {
 // =============================================================================
 
 function GetTheApp() {
+  const sectionRef = useRef<HTMLElement | null>(null);
+
+  useIsomorphicLayoutEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const ctx = gsap.context(() => {
+      const words = gsap.utils.toArray<HTMLElement>("[data-app-word]");
+      if (words.length) {
+        gsap.set(words, { color: "rgba(255,255,255,0.2)" });
+        gsap.to(words, {
+          keyframes: [
+            { color: "#FFFFFF", duration: 0.35 },
+            { color: "#67E8F9", duration: 0.3 },
+            { color: "#FFFFFF", duration: 0.35 },
+          ],
+          ease: "none",
+          stagger: { amount: 1.5 },
+          scrollTrigger: {
+            trigger: "[data-app-heading]",
+            start: "top 85%",
+            end: "+=90%",
+            scrub: 0.6,
+          },
+        });
+      }
+    }, el);
+    return () => ctx.revert();
+  }, []);
+
   return (
-    <section className="relative w-full overflow-hidden bg-[#0A0A0A]">
+    <section ref={sectionRef} className="relative w-full overflow-hidden bg-[#0A0A0A]">
       <Shell className="relative py-20 md:py-28">
-        {/* Phones image — large, centered at top */}
-        <div className="flex justify-center">
+        {/* Phones image — compact, centered on a soft cyan halo that extends
+            beyond the mockup silhouette. */}
+        <div className="relative flex items-center justify-center">
+          {/* Cyan radial glow — two stacked layers, both biased to the TOP
+              half of the image and masked to fade out below the midline so
+              the glow doesn't bleed under the phone. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-[38%] z-0 h-[420px] w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full md:h-[480px] md:w-[760px]"
+            style={{
+              background:
+                "radial-gradient(50% 50% at 50% 45%, rgba(103,232,249,1) 0%, rgba(14,165,233,0.55) 35%, transparent 72%)",
+              filter: "blur(70px)",
+              opacity: 0.9,
+              WebkitMaskImage:
+                "linear-gradient(to bottom, black 0%, black 55%, transparent 90%)",
+              maskImage:
+                "linear-gradient(to bottom, black 0%, black 55%, transparent 90%)",
+            }}
+          />
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-[38%] z-0 h-[300px] w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full md:h-[340px] md:w-[500px]"
+            style={{
+              background:
+                "radial-gradient(50% 50% at 50% 45%, rgba(103,232,249,1) 0%, rgba(103,232,249,0.6) 40%, transparent 75%)",
+              filter: "blur(35px)",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, black 0%, black 55%, transparent 90%)",
+              maskImage:
+                "linear-gradient(to bottom, black 0%, black 55%, transparent 90%)",
+            }}
+          />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/platsore-appstore.png"
             alt="SOURCE app on iPhone"
-            className="max-h-[520px] w-auto object-contain md:max-h-[640px]"
+            className="relative z-10 max-h-[300px] w-auto object-contain md:max-h-[380px]"
           />
         </div>
 
         {/* Heading + copy — two-column layout below the phones */}
         <div className="mt-16 grid gap-10 md:mt-20 md:grid-cols-2 md:gap-20">
           <div>
-            <h2 className="font-display text-[44px] font-semibold uppercase leading-[1.02] text-white md:text-[64px]">
-              Monitoring, Control
+            <h2
+              data-app-heading
+              className="font-display text-[42px] font-semibold uppercase leading-[1.05] text-white"
+            >
+              {["Monitoring,", "Control"].map((w, i, arr) => (
+                <Fragment key={`l1-${i}`}>
+                  <span data-app-word className="inline-block">{w}</span>
+                  {i < arr.length - 1 ? " " : ""}
+                </Fragment>
+              ))}
               <br />
-              &amp; Applications
+              {["&", "Applications"].map((w, i, arr) => (
+                <Fragment key={`l2-${i}`}>
+                  <span data-app-word className="inline-block">{w}</span>
+                  {i < arr.length - 1 ? " " : ""}
+                </Fragment>
+              ))}
             </h2>
+
+            {/* App Store / Google Play / QR row — sits under the heading */}
+            <div className="mt-10 flex items-stretch gap-4">
+              <div className="flex flex-col gap-3">
+                <a href="#" className="inline-flex h-[56px] items-center gap-3 rounded-lg border border-white/15 bg-black px-5 text-white transition hover:border-white/30">
+                  <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden>
+                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
+                  </svg>
+                  <span className="flex flex-col leading-tight">
+                    <span className="text-[10px] text-white/70">Download on the</span>
+                    <span className="text-base font-semibold">App Store</span>
+                  </span>
+                </a>
+                <a href="#" className="inline-flex h-[56px] items-center gap-3 rounded-lg border border-white/15 bg-black px-5 text-white transition hover:border-white/30">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/icon/playstore.png" alt="" className="h-6 w-6 object-contain" aria-hidden />
+                  <span className="flex flex-col leading-tight">
+                    <span className="text-[10px] text-white/70">GET IT ON</span>
+                    <span className="text-base font-semibold">Google Play</span>
+                  </span>
+                </a>
+              </div>
+              <div className="flex h-[124px] w-[124px] shrink-0 flex-col items-center justify-center rounded-lg border border-white/15 bg-white p-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/QRcode.png" alt="Scan QR code to download" className="h-[80px] w-[80px] object-contain" />
+                <p className="mt-1 text-center text-[9px] font-medium leading-tight text-black/70">
+                  Scan QR to download
+                </p>
+              </div>
+            </div>
           </div>
           <div>
-            <p className="text-[16px] leading-relaxed text-white/75 md:text-[18px]">
+            <p className="text-[16px] leading-relaxed text-white/75">
               Monitor, control, and optimize your energy ecosystem from anywhere with the SOURCE app. Gain real-time visibility into system performance, switch between Eco, Backup, and Performance modes, receive instant alerts and diagnostics, track grid behavior, and measure energy savings, cost reductions, and sustainability impact.
             </p>
-            <p className="mt-6 text-[16px] leading-relaxed text-white/75 md:text-[18px]">
+            <p className="mt-6 text-[16px] leading-relaxed text-white/75">
               Designed for homes, commercial facilities, small industries, and remote sites, SOURCE delivers intelligent energy management, reliable backup power, and operational efficiency across a wide range of applications.
-            </p>
-          </div>
-        </div>
-
-        {/* App Store / Google Play / QR row — bottom-left */}
-        <div className="mt-12 flex items-stretch gap-4 md:mt-16">
-          <div className="flex flex-col gap-3">
-            <a href="#" className="inline-flex h-[56px] items-center gap-3 rounded-lg border border-white/15 bg-black px-5 text-white transition hover:border-white/30">
-              <svg viewBox="0 0 24 24" className="h-7 w-7" fill="currentColor" aria-hidden>
-                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-              </svg>
-              <span className="flex flex-col leading-tight">
-                <span className="text-[10px] text-white/70">Download on the</span>
-                <span className="text-base font-semibold">App Store</span>
-              </span>
-            </a>
-            <a href="#" className="inline-flex h-[56px] items-center gap-3 rounded-lg border border-white/15 bg-black px-5 text-white transition hover:border-white/30">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/icon/playstore.png" alt="" className="h-6 w-6 object-contain" aria-hidden />
-              <span className="flex flex-col leading-tight">
-                <span className="text-[10px] text-white/70">GET IT ON</span>
-                <span className="text-base font-semibold">Google Play</span>
-              </span>
-            </a>
-          </div>
-          <div className="flex h-[124px] w-[124px] shrink-0 flex-col items-center justify-center rounded-lg border border-white/15 bg-white p-2">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/QRcode.png" alt="Scan QR code to download" className="h-[80px] w-[80px] object-contain" />
-            <p className="mt-1 text-center text-[9px] font-medium leading-tight text-black/70">
-              Scan QR to download
             </p>
           </div>
         </div>
@@ -3165,11 +3242,16 @@ function OneHomeMultipleScenarios() {
         />
       ))}
 
-      {/* Soft bottom gradient — keeps overlaid heading / description / toggle
-          legible without hiding too much of the scene. */}
+      {/* Bottom scrim — stronger and taller so the heading / description /
+          toggle stay legible against bright scenes without needing a visible
+          card behind them. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-black/85 via-black/45 to-transparent"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-[72%]"
+        style={{
+          background:
+            "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.78) 18%, rgba(0,0,0,0.55) 38%, rgba(0,0,0,0.3) 60%, rgba(0,0,0,0.12) 80%, rgba(0,0,0,0) 100%)",
+        }}
       />
 
       {/* Overlay stack — eyebrow + heading + description sit on the image
@@ -3178,7 +3260,7 @@ function OneHomeMultipleScenarios() {
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between md:gap-10">
           {/* Left — eyebrow + heading + description */}
           <div data-ohs-head className="max-w-2xl text-left">
-            <p className="eyebrow !text-xs !tracking-[0.22em] !text-white/60">
+            <p className="eyebrow !text-xs !tracking-[0.22em] !text-white/70">
               One home, multiple scenarios
             </p>
             <h2 className="mt-3 font-display text-[42px] font-semibold leading-tight text-white">
@@ -3240,48 +3322,116 @@ function CleanTechChapter() {
     const el = sectionRef.current;
     if (!el) return;
     const ctx = gsap.context(() => {
-      gsap.from("[data-ct-image], [data-ct-head], [data-ct-feature], [data-ct-cta]", {
-        autoAlpha: 0,
-        y: 30,
-        duration: 0.8,
-        stagger: 0.08,
-        ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 75%" },
+      // Single scrubbed timeline — as the user scrolls into the section the
+      // curved line draws itself, and the content blocks reveal in sync with
+      // the line's progress (heading → image → features → CTA).
+      const curve = el.querySelector<SVGPathElement>("[data-ct-curve]");
+      const reveals = gsap.utils.toArray<HTMLElement>("[data-ct-reveal]");
+      gsap.set(reveals, { autoAlpha: 0, y: 32 });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: el,
+          start: "top 85%",
+          end: "bottom 25%",
+          scrub: 0.8,
+        },
       });
+
+      if (curve) {
+        const len = curve.getTotalLength();
+        gsap.set(curve, { strokeDasharray: len, strokeDashoffset: len });
+        tl.to(curve, { strokeDashoffset: 0, ease: "none", duration: 1 }, 0);
+      }
+
+      // Stagger the reveals across the line's draw — each block appears as
+      // the line reaches roughly its vertical position.
+      tl.to(
+        reveals,
+        {
+          autoAlpha: 1,
+          y: 0,
+          stagger: 0.18,
+          duration: 0.25,
+          ease: "power2.out",
+        },
+        0.15
+      );
     }, el);
     return () => ctx.revert();
   }, []);
 
   return (
-    <section ref={sectionRef} className="relative w-full overflow-hidden bg-[#0A0A0A] py-20 md:py-28">
-      <Shell className="relative">
-        <div className="grid gap-12 md:grid-cols-[1.3fr_1fr] md:items-center md:gap-20">
-          <div data-ct-image className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/[0.08] bg-bg-card">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/Source-Solar-panel-cleaning-machine.png"
-              alt="SOURCE CleanTech device on solar panels"
-              className="absolute inset-0 h-full w-full object-cover"
+    <section ref={sectionRef} className="relative w-full overflow-hidden bg-[#0A0A0A] py-16 md:py-24">
+      {/* Curved "L"-shaped line — enters horizontally at the top, curves at
+          the right, then descends VERTICALLY down the right side through the
+          whole section. Stroke draws in as the user scrolls through. */}
+      <div aria-hidden className="pointer-events-none absolute inset-0">
+        <svg
+          viewBox="0 0 1600 1000"
+          preserveAspectRatio="none"
+          className="h-full w-full"
+        >
+          <path
+            data-ct-curve
+            d="M 0 120 L 1050 120 C 1300 120, 1500 180, 1560 330 L 1560 1000"
+            fill="none"
+            stroke="#67e8f9"
+            strokeWidth="2"
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+            style={{
+              filter:
+                "drop-shadow(0 0 4px rgba(103,232,249,0.6)) drop-shadow(0 0 10px rgba(103,232,249,0.3))",
+            }}
+          />
+        </svg>
+      </div>
+
+      <Shell className="relative pt-16 md:pt-24">
+        {/* Eyebrow + heading block — sits above the two-column content */}
+        <div data-ct-reveal data-ct-head className="max-w-3xl">
+          <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/50">
+            CleanTech
+          </p>
+          <h2 className="mt-3 font-display text-[42px] font-semibold leading-[1.08] text-white md:mt-4">
+            Keep panels clean for consistent performance.
+          </h2>
+          <p className="mt-4 max-w-xl text-[16px] leading-relaxed text-white/60 md:mt-5">
+            Our solar-panel cleaning device is a separate chapter in the wider CleanTech ecosystem, built to keep your rooftop generating at its best.
+          </p>
+        </div>
+
+        {/* Two-column layout — image on the LEFT, content on the RIGHT */}
+        <div className="mt-10 grid gap-10 md:mt-14 md:grid-cols-[1.1fr_1fr] md:items-center md:gap-14 lg:gap-20">
+          {/* LEFT — image with soft cyan glow behind */}
+          <div data-ct-reveal data-ct-image className="relative flex items-center justify-center">
+            <span
+              aria-hidden
+              className="pointer-events-none absolute left-1/2 top-1/2 z-0 h-[75%] w-[85%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{
+                background:
+                  "radial-gradient(50% 50% at 50% 50%, rgba(103,232,249,0.4) 0%, rgba(14,165,233,0.15) 40%, transparent 72%)",
+                filter: "blur(50px)",
+              }}
             />
+            <div className="relative z-10 aspect-[4/3] w-full overflow-hidden rounded-2xl border border-white/10">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/source/cleantech.png"
+                alt="SOURCE CleanTech device on solar panels"
+                className="absolute inset-0 h-full w-full object-cover"
+              />
+            </div>
           </div>
 
+          {/* RIGHT — feature grid + CTA */}
           <div>
-            <p data-ct-head className="eyebrow !text-xs !tracking-[0.22em] !text-white/50">
-              CleanTech
-            </p>
-            <h2 data-ct-head className="mt-3 font-display text-[42px] font-semibold text-white">
-              Keep panels clean for consistent performance.
-            </h2>
-            <p data-ct-head className="mt-5 max-w-md text-[16px] leading-relaxed text-white/70">
-              Our solar-panel cleaning device is a separate chapter in the wider CleanTech ecosystem, built to keep your rooftop generating at its best.
-            </p>
-
-            <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+            <ul data-ct-reveal className="grid gap-4 sm:grid-cols-2">
               {CLEANTECH_FEATURES.map((f) => (
                 <li
                   key={f.title}
-                  data-ct-feature
-                  className="rounded-xl border border-white/[0.08] bg-bg-card p-5"
+                  className="rounded-xl border border-white/[0.08] bg-white/[0.02] p-5"
                 >
                   <p className="font-display text-sm font-semibold text-white md:text-base">
                     {f.title}
@@ -3293,7 +3443,7 @@ function CleanTechChapter() {
               ))}
             </ul>
 
-            <div data-ct-cta className="mt-10">
+            <div data-ct-reveal className="mt-8">
               <Link
                 href="/contact"
                 className="group inline-flex items-center gap-3 rounded-full border border-white/20 py-2.5 pl-5 pr-2.5 font-display text-sm font-medium text-white transition hover:border-white hover:bg-white hover:text-black"
@@ -3485,11 +3635,8 @@ function FAQ() {
       <Shell>
         <div className="grid gap-10 md:grid-cols-[1fr_1.6fr_0.8fr] md:gap-14 tablet:grid-cols-1 tablet:gap-8">
           <div className="md:sticky md:top-28 md:self-start tablet:static tablet:top-auto">
-            <p className="eyebrow !text-xs !tracking-[0.22em] !text-white/50">
+            <h2 className="font-display text-[42px] font-semibold leading-[1.05] text-white">
               Frequently asked questions
-            </p>
-            <h2 className="mt-3 font-display text-[42px] font-semibold text-white">
-              Straightforward answers.
             </h2>
             <p className="mt-5 max-w-xs text-[16px] leading-relaxed text-white/60">
               So you can move forward with confidence.
@@ -3580,49 +3727,112 @@ function FAQ() {
 
 function FinalCTA() {
   const sectionRef = useRef<HTMLElement | null>(null);
+  const capsuleRef = useRef<HTMLDivElement | null>(null);
+  const headRef = useRef<HTMLDivElement | null>(null);
 
+  // Sigenergy-style reveal: heading + CTAs visible at rest; the framed
+  // pill-shaped image expands to fill the section as the user scrolls.
   useIsomorphicLayoutEffect(() => {
-    const el = sectionRef.current;
-    if (!el) return;
+    const section = sectionRef.current;
+    const capsule = capsuleRef.current;
+    const head = headRef.current;
+    if (!section || !capsule || !head) return;
+
     const ctx = gsap.context(() => {
+      // Initial fade-in for heading / sub / CTAs on first entry.
       gsap.from("[data-fin-head], [data-fin-sub], [data-fin-cta]", {
         autoAlpha: 0,
         y: 24,
         duration: 0.7,
         stagger: 0.1,
         ease: "power3.out",
-        scrollTrigger: { trigger: el, start: "top 75%" },
+        scrollTrigger: { trigger: section, start: "top 75%" },
       });
-    }, el);
-    return () => ctx.revert();
+
+      // Word-by-word scrub reveal on the heading — faded → white → cyan → white.
+      const finWords = gsap.utils.toArray<HTMLElement>("[data-fin-word]");
+      if (finWords.length) {
+        gsap.set(finWords, { color: "rgba(255,255,255,0.2)" });
+        gsap.to(finWords, {
+          keyframes: [
+            { color: "#FFFFFF", duration: 0.35 },
+            { color: "#67E8F9", duration: 0.3 },
+            { color: "#FFFFFF", duration: 0.35 },
+          ],
+          ease: "none",
+          stagger: { amount: 1.5 },
+          scrollTrigger: {
+            trigger: "[data-fin-head]",
+            start: "top 85%",
+            end: "+=90%",
+            scrub: 0.6,
+          },
+        });
+      }
+
+      // Image is hidden at rest; fades in to fit the full viewport as the user
+      // scrolls through the pinned section. Heading + CTAs fade out in parallel.
+      gsap.set(capsule, { autoAlpha: 0 });
+
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: section,
+          start: "top top",
+          end: "+=150%",
+          scrub: 0.6,
+          pin: true,
+          pinSpacing: true,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      });
+
+      // Hold on the heading for the first ~15% of scroll (user absorbs text +
+      // scrub reveal). Then heading + glow exit QUICKLY, and the image reveals
+      // behind — image starts fading in with a tiny 0.05 overlap so the
+      // viewport never goes fully blank while the heading disappears.
+      tl.to({}, { duration: 0.15 }, 0);
+      tl.to(head, { autoAlpha: 0, y: -40, ease: "power2.in", duration: 0.25 }, 0.15);
+      tl.to(capsule, { autoAlpha: 1, ease: "power2.out", duration: 0.5 }, 0.35);
+    }, section);
+
+    const refreshId = window.setTimeout(() => ScrollTrigger.refresh(), 200);
+    return () => {
+      window.clearTimeout(refreshId);
+      ctx.revert();
+    };
   }, []);
 
   return (
     <section
       ref={sectionRef}
-      className="relative flex min-h-[80vh] w-full items-end overflow-hidden bg-black md:min-h-screen"
+      className="relative w-full overflow-hidden bg-[#0A0A0A]"
     >
-      <div
-        aria-hidden
-        className="absolute inset-0"
-        style={{
-          backgroundImage:
-            "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.6) 100%), url('/images/Card.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundColor: "#0f0f0f",
-        }}
-      />
-
-      <div className="relative w-full px-6 pb-14 md:px-14 md:pb-20">
-        <div className="mx-auto max-w-[1400px]">
-          <h2 data-fin-head className="max-w-2xl font-display text-[42px] font-semibold leading-[1.1] text-white">
-            A smarter way to power tomorrow.
+      <div className="relative h-screen w-full">
+        {/* Heading + sub + CTAs — vertically & horizontally centred inside the pinned
+            viewport, fade/lift on scroll */}
+        <div
+          ref={headRef}
+          className="absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center"
+        >
+          <h2
+            data-fin-head
+            className="max-w-4xl font-display text-[42px] font-semibold uppercase leading-[1.08] tracking-tight text-white md:text-[64px] md:leading-[1.04] lg:text-[76px]"
+          >
+            {"A smarter way to power tomorrow.".split(" ").map((w, i, arr) => (
+              <Fragment key={i}>
+                <span data-fin-word className="inline-block">{w}</span>
+                {i < arr.length - 1 ? " " : ""}
+              </Fragment>
+            ))}
           </h2>
-          <p data-fin-sub className="mt-5 max-w-xl text-[16px] leading-relaxed text-white/80 md:mt-6">
+          <p
+            data-fin-sub
+            className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-white/75 md:mt-6 md:text-[16px]"
+          >
             SOURCE brings solar, storage and intelligent energy management together — so you can enjoy a brighter, more sustainable tomorrow.
           </p>
-          <div data-fin-cta className="mt-8 flex flex-wrap gap-3 md:mt-10">
+          <div data-fin-cta className="mt-7 flex flex-wrap justify-center gap-3 md:mt-8">
             <Link
               href="/contact"
               className="inline-flex items-center justify-center rounded-md bg-white px-6 py-3 font-display text-sm font-medium text-black transition hover:bg-white/90 md:text-base"
@@ -3636,6 +3846,22 @@ function FinalCTA() {
               Talk to our Team
             </Link>
           </div>
+        </div>
+
+        {/* Full-viewport image — hidden at rest, fades in via the scroll timeline
+            to fill the pinned section as the user scrolls through. */}
+        <div
+          ref={capsuleRef}
+          className="absolute inset-0 z-10 overflow-hidden"
+          style={{ willChange: "opacity" }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/source/solar-generation.png"
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            aria-hidden
+          />
         </div>
       </div>
     </section>
