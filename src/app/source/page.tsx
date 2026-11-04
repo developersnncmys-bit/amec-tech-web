@@ -320,7 +320,7 @@ const SCENARIOS: Scenario[] = [
   {
     id: "outage",
     label: "Grid Interruption",
-    image: "/source/grid-inter.png",
+    image: "/source/Grid-inter.png",
     summary:
       "During an outage, SOURCE islands from the grid and critical loads keep running on stored energy.",
     paths: [
