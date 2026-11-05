@@ -430,7 +430,25 @@ const SOURCE_FRAME_SRC = (i: number) =>
 function Hero() {
   const pinRef = useRef<HTMLElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
   const [quoteOpen, setQuoteOpen] = useState(false);
+
+  // Preloader covers the viewport for MIN_DISPLAY_MS (600) + FADE_MS (500) =
+  // ~1.1s. If the hero video were set to autoPlay it would start running
+  // behind the preloader, so by the time it's visible the intro has already
+  // elapsed. Instead we hold the video paused, then rewind to 0 and play it
+  // once the preloader is gone — so the first visible frame is frame 0.
+  useEffect(() => {
+    const PRELOADER_TOTAL_MS = 1100;
+    const startAtZero = () => {
+      const v = heroVideoRef.current;
+      if (!v) return;
+      v.currentTime = 0;
+      v.play().catch(() => {});
+    };
+    const id = window.setTimeout(startAtZero, PRELOADER_TOTAL_MS);
+    return () => window.clearTimeout(id);
+  }, []);
 
   // Parallax frame-sequence hero is temporarily disabled — using a looping
   // video (/source/hero.mp4) as the backdrop instead. Re-enable this effect
@@ -556,21 +574,26 @@ function Hero() {
     >
       <div className="relative h-screen w-full">
         {/* Looping hero video — temporarily replacing the scroll-scrubbed frame
-            sequence while the parallax effect above is commented out. */}
+            sequence while the parallax effect above is commented out.
+            Starts paused + rewound; the ref hook below releases it after the
+            Preloader finishes so the first visible frame is frame 0. */}
         <video
-          src="/source/hero.mp4"
+          ref={heroVideoRef}
+          src="/source/source-hero.mp4"
           className="absolute inset-0 h-full w-full object-cover"
-          autoPlay
           muted
           loop
           playsInline
           preload="auto"
           aria-hidden
         />
-        {/* Soft bottom-up gradient so the headline + CTAs stay legible over the video */}
+        {/* Localised scrim — confined to the bottom third so the description
+            and CTAs stay legible, while the video itself is unobstructed in
+            the upper two-thirds (where the eyebrow + headline sit over the
+            cleaner part of the scene). */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[32%] bg-gradient-to-t from-black/75 via-black/35 to-transparent"
         />
 
         {/* Cloud wash — layered translucent blobs that drift sideways on scroll.
@@ -591,24 +614,28 @@ function Hero() {
       </div>
 
       {/* Top-centre eyebrow + headline */}
-      <div className="absolute inset-x-0 top-0 flex flex-col items-center px-6 pt-28 text-center md:pt-32">
+      <div className="absolute inset-x-0 top-0 flex flex-col items-center px-6 pt-24 text-center md:pt-28">
         <AnimateIn>
-          <p className="eyebrow !text-xs !tracking-[0.22em] !text-white/80 md:!text-sm">
+          <p className="eyebrow !text-lg !tracking-[0.3em] !text-white/85 md:!text-2xl">
             {HERO_COPY.eyebrow}
           </p>
         </AnimateIn>
-      </div>
-
-      {/* Bottom-left headline + sub + CTAs — composition per brief Panel 01 */}
-      <div className="absolute inset-x-0 bottom-0 flex px-6 pb-14 md:px-14 md:pb-20">
-        <AnimateIn className="max-w-2xl">
-          <h1 className="font-display text-[36px] font-semibold leading-[1.08] text-white md:text-[64px] md:leading-[1.06]">
+        <AnimateIn className="mt-3 max-w-4xl md:mt-4">
+          <h1 className="font-display text-[36px] font-semibold uppercase leading-[1.08] text-white md:text-[64px] md:leading-[1.06]">
             {HERO_COPY.headline}
           </h1>
-          <p className="mt-5 max-w-xl text-sm leading-relaxed text-white/80 md:mt-7 md:text-[17px]">
+        </AnimateIn>
+      </div>
+
+      {/* Bottom row — sub pinned to the left, CTAs pushed to the right */}
+      <div className="absolute inset-x-0 bottom-0 flex flex-col items-start gap-8 px-6 pb-14 md:flex-row md:items-end md:justify-between md:gap-10 md:px-14 md:pb-20">
+        <AnimateIn className="max-w-2xl">
+          <p className="max-w-xl text-sm leading-relaxed text-white/80 md:text-[17px]">
             {HERO_COPY.sub}
           </p>
-          <div className="mt-7 flex flex-wrap gap-3 md:mt-9">
+        </AnimateIn>
+        <AnimateIn className="shrink-0">
+          <div className="flex flex-wrap gap-3">
             <HeroCTA
               onClick={() => setQuoteOpen(true)}
               label={HERO_COPY.primary}
@@ -620,8 +647,8 @@ function Hero() {
         </AnimateIn>
       </div>
 
-      {/* Scroll cue — bottom right */}
-      <ScrollCue className="absolute bottom-10 right-6 md:bottom-14 md:right-14" />
+      {/* Scroll cue — bottom center */}
+      <ScrollCue className="absolute bottom-2 left-1/2 -translate-x-1/2 md:bottom-3" />
 
       <QuoteFormModal
         open={quoteOpen}
@@ -1146,7 +1173,7 @@ function WhereTheEnergyBegins() {
             ))}
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-[16px] leading-relaxed text-white/60">
-            Choose a component to see how energy moves through your SOURCE system.
+            Each piece plays a role — see how solar, grid and battery come together to power your home.
           </p>
         </div>
 
@@ -1391,12 +1418,25 @@ function MeetSOURCE() {
       };
       resetMeet();
 
+      // Timeline is paused at mount; a ScrollTrigger plays it from the start
+      // only when the user scrolls the Meet SOURCE section into view, so the
+      // stroke-draw reveal always begins fresh instead of being caught mid-cycle.
       const drawTl = gsap.timeline({
         repeat: -1,
         onRepeat: resetMeet,
+        paused: true,
+        scrollTrigger: {
+          trigger: "[data-meet-pin]",
+          start: "top 80%",
+          onEnter: (self) => {
+            resetMeet();
+            self.animation?.restart();
+          },
+        },
       });
 
-      // Breathing cyan glow — slow sine pulse on the SVG filter.
+      // Breathing cyan glow — slow sine pulse on the SVG filter. Starts only
+      // when the section scrolls in so it syncs with the stroke-draw reveal.
       gsap.to("[data-meet-visual] svg", {
         filter:
           "drop-shadow(0 0 20px rgba(103, 232, 249, 0.85)) drop-shadow(0 0 50px rgba(103, 232, 249, 0.5))",
@@ -1404,6 +1444,12 @@ function MeetSOURCE() {
         repeat: -1,
         yoyo: true,
         ease: "sine.inOut",
+        paused: true,
+        scrollTrigger: {
+          trigger: "[data-meet-pin]",
+          start: "top 80%",
+          onEnter: (self) => self.animation?.play(),
+        },
       });
 
       drawTl
@@ -1783,13 +1829,14 @@ function TakeACloserLook() {
                   </Fragment>
                 ))}
               </h2>
-              {/* Description — now sits below the headline on the left */}
-              <p className="mt-5 max-w-md text-left text-[16px] leading-relaxed text-white/60 md:mt-6 md:pl-16">
+              {/* Description — sits below the headline on the left, kept to
+                  two lines by widening the max-width. */}
+              <p className="mt-4 max-w-2xl text-left text-[16px] leading-relaxed text-white/60 md:mt-5 md:pl-16">
                 Every SOURCE unit is engineered to IEC standards and shipped with a full datasheet — inverter, battery, and system specs, one document.
               </p>
 
               {/* Nav arrows + pills live in their own positioning context below. */}
-              <div className="relative mt-8 md:mt-10">
+              <div className="relative mt-7 md:mt-9">
               {/* Vertical nav arrows — cycle through features */}
               <div className="pointer-events-none absolute -left-1 top-1/2 hidden -translate-y-1/2 flex-col gap-3 md:flex">
                 <button
@@ -2336,18 +2383,6 @@ function EnergyMeetsIntelligence() {
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 opacity-40"
-            style={{
-              backgroundImage:
-                "linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px)",
-              backgroundSize: "60px 60px",
-              maskImage: "radial-gradient(ellipse 80% 60% at 50% 50%, black 40%, transparent 85%)",
-              WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 50%, black 40%, transparent 85%)",
-            }}
-          />
-
           <div className="relative grid gap-6 md:grid-cols-2 md:gap-6 lg:gap-8">
             {/* LEFT PANEL — Phone / On your phone */}
             <div className="relative flex flex-col items-center overflow-hidden rounded-2xl bg-white/[0.015] px-4 pb-10 pt-10 text-center shadow-[inset_0_0_60px_rgba(103,232,249,0.1),0_0_30px_rgba(103,232,249,0.08)] md:min-h-[720px] md:px-10 md:pb-16 md:pt-16">
@@ -3329,20 +3364,30 @@ function CleanTechChapter() {
 
       if (curve) {
         const len = curve.getTotalLength();
-        gsap.set(curve, { strokeDasharray: len, strokeDashoffset: len });
-        // Line draws across the full timeline — by `end: top 30%` the whole
-        // L-shape is visible inside the section.
-        tl.to(curve, { strokeDashoffset: 0, ease: "none", duration: 1 }, 0);
+        gsap.set(curve, { strokeDasharray: len });
+        // `fromTo` gives scrub explicit start AND end states, so scrolling
+        // back up cleanly interpolates strokeDashoffset: 0 → len (line
+        // un-draws). A plain `set` + `to` combo can get out of sync when the
+        // user crosses the trigger boundary in reverse.
+        tl.fromTo(
+          curve,
+          { strokeDashoffset: len },
+          { strokeDashoffset: 0, ease: "none", duration: 1 },
+          0
+        );
       }
 
-      tl.to(
+      // Same `fromTo` treatment for the content reveals so they also un-reveal
+      // smoothly on scroll-up.
+      tl.fromTo(
         reveals,
+        { autoAlpha: 0, y: 32 },
         {
           autoAlpha: 1,
           y: 0,
           stagger: 0.15,
           duration: 0.25,
-          ease: "power2.out",
+          ease: "none",
         },
         0.1
       );
@@ -3835,10 +3880,10 @@ function FinalCTA() {
         >
           <h2
             data-fin-head
-            className="max-w-4xl font-display text-[42px] font-semibold uppercase leading-[1.08] tracking-tight text-white md:text-[64px] md:leading-[1.04] lg:text-[76px]"
+            className="max-w-5xl whitespace-nowrap font-display text-[28px] font-semibold uppercase leading-[1.08] tracking-tight text-white md:text-[42px] lg:text-[52px]"
           >
-            {"A smarter way to power tomorrow.".split(" ").map((w, i, arr) => (
-              <Fragment key={i}>
+            {"A Smarter Way To Power Tomorrow.".split(" ").map((w, i, arr) => (
+              <Fragment key={`fin-w-${i}`}>
                 <span data-fin-word className="inline-block">{w}</span>
                 {i < arr.length - 1 ? " " : ""}
               </Fragment>
@@ -3875,7 +3920,7 @@ function FinalCTA() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/source/solar-generation.png"
+            src="/source/footer.png"
             alt=""
             className="absolute inset-0 h-full w-full object-cover"
             aria-hidden
